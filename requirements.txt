@@ -1,0 +1,4 @@
+GitPython==3.1.14
+PyGithub==1.54.1
+tabulate==0.8.9
+build==0.3.1

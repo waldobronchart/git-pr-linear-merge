@@ -1,0 +1,18 @@
+# packaging
+*.egg-info
+build
+dist
+*.egg
+.eggs
+
+# python
+__pycache__
+
+# tools
+.tox
+.*_cache
+.DS_Store
+
+# IDE
+.idea
+.vscode
