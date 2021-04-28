@@ -268,7 +268,7 @@ def run():
     config.read(config_file_path)
     github_access_token = args['token']
     if not github_access_token:
-        github_access_token = config.get('auth', 'github_access_token')
+        github_access_token = config.get('auth', 'github_access_token', fallback=None)
 
     # Auth checkup
     github_access_token = auth.initial_auth_flow_if_necessary(github_access_token)
