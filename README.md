@@ -18,7 +18,7 @@ To maintain linear history, a pull request branch is rebased on top of its base,
 
 Python3.6 or above is required. You can install this package by running the following command:
 ```
-pip install git-pr-linear-merge
+pip3 install git-pr-linear-merge
 ```
 
 **How To Use**
@@ -50,7 +50,7 @@ pip install -r requirements.txt
 
 With the environment setup through the previous step, you can run `git pr` using your local code by running the `git-pr.py` script in the root directory of this repo.
 ```
-python git-pr.py
+python3 git-pr.py
 ```
 
 ## Updating the package
