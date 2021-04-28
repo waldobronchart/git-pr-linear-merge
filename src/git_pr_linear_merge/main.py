@@ -180,6 +180,7 @@ def merge_command(git_repo, github_repo, pull_number):
         # Checkout the base branch and bring it up to date if necessary
         log.info(f'Checking out {pull.base.ref}')
         git_repo.git.checkout(pull.base.ref)
+        git_repo.git.branch(f'--set-upstream-to=origin/{pull.base.ref}', pull.base.ref) # Fixes an issue where checkout didn't track the upstream
         log.info(f'Updating {pull.base.ref}')
         git_repo.git.pull('--rebase')
 
