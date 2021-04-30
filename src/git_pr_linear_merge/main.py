@@ -151,7 +151,7 @@ def merge_command(git_repo, github_repo, pull_number):
         git_repo.create_head(backup_branch_name)
         def delete_backup_branch():
             log.info(f'Deleting the local backup branch {backup_branch_name}')
-            git_repo.git.branch('-d', backup_branch_name)
+            git_repo.git.branch('-D', backup_branch_name)
         undo_stack.append(UndoAction(delete_backup_branch))
 
         # Rebase the pr branch on top of the base (remote)
