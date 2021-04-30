@@ -228,7 +228,10 @@ def merge_command(git_repo, github_repo, pull_number):
 
                 # Delete the pr branch
                 log.info(f'Deleting the pull request branch {pull.head.ref}')
-                git_repo.git.push('origin', '--delete', '--no-verify', pull.head.ref)
+                try: # trycatch here because GitPython seems to throw an error here, even if it succeeds
+                    git_repo.git.push('origin', '--delete', '--no-verify', pull.head.ref)
+                except:
+                    pass
 
     except git.CommandError as command_error:
         command = command_error._cmdline
