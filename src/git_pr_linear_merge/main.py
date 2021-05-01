@@ -203,8 +203,10 @@ def merge_command(git_repo, github_repo, pull_number):
 
         # Ask for permission to push
         num_commits_to_push = len(list(git_repo.iter_commits(f'{pull.base.ref}...{pull.base.ref}@{{u}}')))
-        preview_history = git_repo.git.log('--pretty=format:"%h %s"', '--graph', f'-{num_commits_to_push+1}')
-        print(preview_history)
+        branch_format_decorated = f'{colorama.Fore.CYAN}{colorama.Back.BLACK}%d{colorama.Style.RESET_ALL}'
+        preview_history = git_repo.git.log(f'--pretty=format:%s{branch_format_decorated}', '--graph', f'-{num_commits_to_push+3}')
+        preview_history = preview_history.replace('\n', '\n  ')
+        log.info(f'Confirm merge:\n  {preview_history}')
         confirm_merge_answer = input(f"Does this look correct? (y/n) ") or "n"
 
         # Push the merge
