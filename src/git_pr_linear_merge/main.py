@@ -93,6 +93,10 @@ def merge_command(git_repo, github_repo, pull_number):
                 else:
                     log.error(f'An unexpected error occurred: {ex}')
 
+    # Fetch so we're operating on the latest data
+    log.info('Fetching')
+    git_repo.remotes.origin.fetch()
+
     # Has the base branch diverged from remote?
     if not is_branch_in_rebaseable_state(pull.base.ref):
         log.error(f'The local base branch `{pull.base.ref}` has diverged from remote. Update the branch before continuing')
@@ -134,10 +138,6 @@ def merge_command(git_repo, github_repo, pull_number):
             log.info(f'Checking out original branch {orig_branch}')
             git_repo.git.checkout(orig_branch)
         undo_stack.append(UndoAction(go_back_to_original_branch))
-
-        # Fetch so we're operating on the latest data
-        log.info('Fetching')
-        git_repo.remotes.origin.fetch()
 
         # Checkout the pr branch and bring it up to date if necessary
         log.info(f'Checking out {pull.head.ref}')
