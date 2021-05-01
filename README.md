@@ -46,7 +46,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-**Running Locally**
+### Running Locally
 
 With the environment setup through the previous step, you can run `git pr` using your local code by running the `git-pr.py` script in the root directory of this repo.
 ```
@@ -57,7 +57,11 @@ python3 git-pr.py
 
 Make sure to bump the version number with updates according to [PEP 440](https://www.python.org/dev/peps/pep-0440/)
 
-**Test Publish**
+### Publish and Install from TestPyPi
+
+Before publishing for real, you can test a package by publishing it to TestPyPi
+
+Publishing:
 ```
 source venv/bin/activate
 rm -rf dist
@@ -66,7 +70,13 @@ python -m build
 twine upload --repository testpypi dist/*
 ```
 
-**Publish**
+Installing:
+```
+python3 -m pip install --index-url https://test.pypi.org/simple/ git-pr-linear-merge
+```
+
+### Publish
+
 ```
 source venv/bin/activate
 rm -rf dist
