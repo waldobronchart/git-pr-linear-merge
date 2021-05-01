@@ -7,6 +7,7 @@ import re
 import requests
 import logging
 import git
+import colorama
 from datetime import datetime
 from github import Github
 from tabulate import tabulate
@@ -30,7 +31,7 @@ def list_command(github, github_repo, only_mine=False):
 
 
 def merge_command(git_repo, github_repo, pull_number):
-    log.info(f'Merging Pull Request #{pull_number}')
+    log.info(f'{colorama.Fore.CYAN}Preparing to merge Pull Request #{pull_number}')
 
     # This undo stack is used when we want to back out of changes
     undo_stack = []
@@ -172,7 +173,7 @@ def merge_command(git_repo, github_repo, pull_number):
 
         log.info(f'Updating {pull.base.ref}')
         git_repo.git.fetch('origin', f'{pull.base.ref}:{pull.base.ref}')
-        log.info(f'Rebasing {pull.head.ref} onto {pull.base.ref}')
+        log.info(f'{colorama.Fore.CYAN}Rebasing {pull.head.ref} onto {pull.base.ref}')
         git_repo.git.rebase(pull.base.ref)
         log.info(f'Force-pushing {pull.head.ref}')
         git_repo.git.push('origin', '-f', '--no-verify', pull.head.ref)
@@ -196,7 +197,7 @@ def merge_command(git_repo, github_repo, pull_number):
         undo_pr_merge_action = UndoAction(undo_pr_merge, failure_is_fatal=True)
         undo_stack.append(undo_pr_merge_action)
 
-        log.info(f'Merging {pull.head.ref} into {pull.base.ref}')
+        log.info(f'{colorama.Fore.CYAN}Merging {pull.head.ref} into {pull.base.ref}')
         merge_msg = f'Merge: {pull.title} (#{pull.number})\n\n{pull.body}'
         git_repo.git.merge(pull.head.ref, '--no-ff', '-m', merge_msg)
 
@@ -218,9 +219,9 @@ def merge_command(git_repo, github_repo, pull_number):
                 log.error(f'The base branch `{pull.base.ref}` has been updated since we started. Try running this script again')
             else:
                 # Push
-                log.info(f'Pushing {pull.base.ref}')
+                log.info(f'{colorama.Fore.CYAN}Pushing {pull.base.ref}')
                 git_repo.git.push('origin', '--no-verify', pull.base.ref)
-                log.info(f'Successfully merged Pull Request #{pull.number}')
+                log.info(f'{colorama.Fore.GREEN}Successfully merged Pull Request #{pull.number}')
 
                 # Pop some elements
                 undo_stack.remove(undo_rebase_action)
@@ -264,6 +265,7 @@ def run():
     args = vars(parser.parse_args())
 
     # Logging setup
+    colorama.init(autoreset=True)
     logger.setup_logging(logging.DEBUG if args['verbose'] else logging.INFO)
 
     # Load config
