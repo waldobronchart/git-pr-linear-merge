@@ -304,7 +304,7 @@ def run():
     github_repo = github.get_repo(github_repo_name)
 
     # Run the command
-    if args['cmd'] == 'list':
+    if args['cmd'] in ['list', 'ls']:
         list_command(github, github_repo, args['mine'])
     elif args['cmd'] == 'merge':
         merge_command(git_repo, github_repo, args['number'][0])
