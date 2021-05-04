@@ -14,24 +14,59 @@ To maintain linear history, a pull request branch is rebased on top of its base,
 
 # Usage
 
-**Installing**
+## Installing
 
 Python3.6 or above is required. You can install this package by running the following command:
 ```
 pip3 install git-pr-linear-merge
 ```
 
-**How To Use**
+## How To Use
 
+Get help: `git pr -h`
+
+The first time you run this script, you will be asked to authenticate with Github.
+
+List all open pull requests: `git pr list`, or list only yours with `git pr list --mine`
 ```
-git pr -h
-git pr list
-git pr merge NUMBER
+   #  Title                                                         Branch
+----  ------------------------------------------------------------  -------------------------------
+5811  Fix various bugs with video player                            fix/kevin-video-player-bugs
+5812  Fix highlight being stuck when gallery frame is deactivated   fix/kevin-highlightable-view
+...
 ```
 
-The first time you run this, you will be asked to authenticate with Github.
-
-
+Merge a pull request: `git pr merge NUMBER`
+```
+$ git pr merge 5850
+| Preparing to merge Pull Request #5850
+| Fetching
+| Stashing local changes
+| Checking out fix/room-template-state-refactor
+| Updating fix/room-template-state-refactor
+| Creating a backup branch before rebasing: backup/fix/room-template-state-refactor-11-05-36
+| Updating dev
+| Rebasing fix/room-template-state-refactor onto dev
+| Force-pushing fix/room-template-state-refactor
+| Checking out dev
+| Updating dev
+| Merging fix/room-template-state-refactor into dev
+| Confirm merge:
+  *   Merge: Room template state refactor (#5850) (HEAD -> dev)
+  |\
+  | * Don't allow users to save templates with too many items (origin/fix/room-template-state-refactor, fix/room-template-state-refactor)
+  | * Use dictionary-id pattern to allow for any number of template loads at a time
+  | * Use a dictionary-based state approach for room template loading
+  |/
+  * Undo changes to app id for Android, iPhone in a1e1c7 (origin/dev, origin/HEAD)
+Does this look correct? (y/n) y
+| Pushing dev
+| Successfully merged Pull Request #5850
+| Deleting the pull request branch fix/room-template-state-refactor
+| Deleting the local backup branch backup/fix/room-template-state-refactor-11-05-36
+| Checking out original branch fix/room-template-state-refactor
+| Re-applying stashed changes
+```
 
 # Development
 
