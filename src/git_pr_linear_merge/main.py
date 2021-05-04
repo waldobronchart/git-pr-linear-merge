@@ -254,7 +254,7 @@ def run():
     # Command line arg parsing
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        description="Merges github pull requests by rebasing before merging to maintan linear history"
+        description="Merges github pull requests by rebasing before merging to maintain linear history"
     )
     parser.add_argument('-t', '--token', help='Github access token to use')
     parser.add_argument('-v', '--verbose', action='store_true', help="Verbose output")
