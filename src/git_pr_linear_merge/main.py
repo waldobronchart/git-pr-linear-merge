@@ -117,9 +117,9 @@ def merge_command(git_repo, github_repo, pull_number):
     #  7. Merge pull request branch into base
     #  8. Ask user for confirmation
     #  9. Push base branch
-    # 10. Delete pull request branch
+    # 10. Delete pull request branch (local and remote)
     # 11. Delete backup branch
-    # 12. Checkout the branch the user was originally on
+    # 12. Checkout the branch the user was originally on (if user wasn't on the pr branch)
     # 13. Re-apply local stash if necessary
     try:
         # Stash local changes if needed
@@ -137,7 +137,8 @@ def merge_command(git_repo, github_repo, pull_number):
         def go_back_to_original_branch():
             log.info(f'Checking out original branch {orig_branch}')
             git_repo.git.checkout(orig_branch)
-        undo_stack.append(UndoAction(go_back_to_original_branch))
+        checkout_original_branch = UndoAction(go_back_to_original_branch)
+        undo_stack.append(checkout_original_branch)
 
         # Checkout the pr branch and bring it up to date if necessary
         log.info(f'Checking out {pull.head.ref}')
@@ -229,12 +230,20 @@ def merge_command(git_repo, github_repo, pull_number):
                 undo_stack.remove(undo_rebase_action)
                 undo_stack.remove(undo_pr_merge_action)
 
-                # Delete the pr branch
+                # Delete the remote pr branch
                 log.info(f'Deleting the pull request branch {pull.head.ref}')
                 try: # trycatch here because GitPython seems to throw an error here, even if it succeeds
                     git_repo.git.push('origin', '--delete', '--no-verify', pull.head.ref)
                 except:
                     pass
+
+                # Merge was successful, if the original branch was the same as the pr branch, stay on the base branch
+                if orig_branch.name == pull.head.ref:
+                    # No longer need to go back to original branch
+                    undo_stack.remove(checkout_original_branch)
+
+                # Delete local pr branch
+                git_repo.git.branch('-D', pull.head.ref)
 
     except git.CommandError as command_error:
         command = command_error._cmdline
