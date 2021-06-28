@@ -199,7 +199,7 @@ def merge_command(git_repo, github_repo, pull_number):
         undo_stack.append(undo_pr_merge_action)
 
         log.info(f'{colorama.Fore.CYAN}Merging {pull.head.ref} into {pull.base.ref}')
-        merge_msg = f'Merge: {pull.title} (#{pull.number})\n\n{pull.body}'
+        merge_msg = f'Merge: {pull.title} (#{pull.number})'
         git_repo.git.merge(pull.head.ref, '--no-ff', '-m', merge_msg)
 
         # Ask for permission to push
