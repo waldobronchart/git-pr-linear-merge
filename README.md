@@ -21,6 +21,11 @@ Python3.6 or above is required. You can install this package by running the foll
 pip3 install git-pr-linear-merge
 ```
 
+To upgrade to the latest version:
+```
+pip3 install --upgrade git-pr-linear-merge
+```
+
 ## How To Use
 
 Get help: `git pr -h`
