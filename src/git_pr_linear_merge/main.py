@@ -285,17 +285,6 @@ def run():
     colorama.init(autoreset=True)
     logger.setup_logging(logging.DEBUG if args['verbose'] else logging.INFO)
 
-    # Load config
-    config_file_path = os.path.expanduser(f'~/{cfg.RC_FILE_NAME}')
-    config = configparser.ConfigParser()
-    config.read(config_file_path)
-    github_access_token = args['token']
-    if not github_access_token:
-        github_access_token = config.get('auth', 'github_access_token', fallback=None)
-
-    # Auth checkup
-    github_access_token = auth.initial_auth_flow_if_necessary(github_access_token)
-
     # Repo setup
     git_repo = None
     try:
@@ -308,6 +297,17 @@ def run():
     if not any(github_remote_urls):
         log.error('This is not a Github repository')
         exit(1)
+
+    # Load config
+    config_file_path = os.path.expanduser(f'~/{cfg.RC_FILE_NAME}')
+    config = configparser.ConfigParser()
+    config.read(config_file_path)
+    github_access_token = args['token']
+    if not github_access_token:
+        github_access_token = config.get('auth', 'github_access_token', fallback=None)
+
+    # Auth checkup
+    github_access_token = auth.initial_auth_flow_if_necessary(github_access_token)
 
     # Parse github repo name from remote url:
     # https://github.com/spatialsys/Spatial-2.0.git
