@@ -30,7 +30,7 @@ def list_command(github, github_repo, only_mine=False):
         print('No pull requests found')
 
 
-def merge_command(git_repo, github_repo, pull_number):
+def merge_command(git_repo, github_repo, pull_number, merge_config):
     log.info(f'{colorama.Fore.CYAN}Preparing to merge Pull Request #{pull_number}')
 
     # This undo stack is used when we want to back out of changes
@@ -199,7 +199,12 @@ def merge_command(git_repo, github_repo, pull_number):
         undo_stack.append(undo_pr_merge_action)
 
         log.info(f'{colorama.Fore.CYAN}Merging {pull.head.ref} into {pull.base.ref}')
-        merge_msg = f'Merge: {pull.title} (#{pull.number})'
+        merge_msg = merge_config.merge_msg_format.format(
+            TITLE=pull.title,
+            NUMBER=pull.number,
+            AUTHOR_USERNAME=pull.user.login,
+            AUTHOR_NAME=pull.user.name
+        )
         git_repo.git.merge(pull.head.ref, '--no-ff', '-m', merge_msg)
 
         # Output preview of local base branch with new commits highlighted
@@ -328,7 +333,8 @@ def run():
     if args['cmd'] in ['list', 'ls']:
         list_command(github, github_repo, args['mine'])
     elif args['cmd'] == 'merge':
-        merge_command(git_repo, github_repo, args['number'][0])
+        merge_config = cfg.MergeConfig(config)
+        merge_command(git_repo, github_repo, args['number'][0], merge_config)
 
 
 if __name__ == '__main__':
