@@ -125,7 +125,7 @@ def merge_command(git_repo, github_repo, pull_number):
         # Stash local changes if needed
         if git_repo.is_dirty(untracked_files=True):
             log.info('Stashing local changes')
-            git_repo.git.stash('push')
+            git_repo.git.stash('push', '--include-untracked')
 
             def reapply_stash():
                 log.info(f'Re-applying stashed changes')
