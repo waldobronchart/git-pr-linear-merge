@@ -298,15 +298,21 @@ def run():
         log.error('This is not a Github repository')
         exit(1)
 
-    # Load config
-    config_file_path = os.path.expanduser(f'~/{cfg.RC_FILE_NAME}')
+    # Load configs
+    git_repo_dir = git_repo.git.rev_parse('--show-toplevel')
+    global_config_file_path = os.path.expanduser(f'~/{cfg.RC_FILE_NAME}')
+    local_config_file_path = os.path.join(git_repo_dir, cfg.RC_FILE_NAME)
+    config_files = [global_config_file_path]
+    if os.path.exists(local_config_file_path):
+        log.debug(f'Reading from local repo config: {local_config_file_path}')
+        config_files.insert(0, local_config_file_path)
     config = configparser.ConfigParser()
-    config.read(config_file_path)
+    config.read(config_files)
+
+    # Auth checkup
     github_access_token = args['token']
     if not github_access_token:
         github_access_token = config.get('auth', 'github_access_token', fallback=None)
-
-    # Auth checkup
     github_access_token = auth.initial_auth_flow_if_necessary(github_access_token)
 
     # Parse github repo name from remote url:
