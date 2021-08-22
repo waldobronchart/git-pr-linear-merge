@@ -202,12 +202,18 @@ def merge_command(git_repo, github_repo, pull_number):
         merge_msg = f'Merge: {pull.title} (#{pull.number})'
         git_repo.git.merge(pull.head.ref, '--no-ff', '-m', merge_msg)
 
-        # Ask for permission to push
+        # Output preview of local base branch with new commits highlighted
         num_commits_to_push = len(list(git_repo.iter_commits(f'{pull.base.ref}...{pull.base.ref}@{{u}}')))
         branch_format_decorated = f'{colorama.Fore.CYAN}{colorama.Back.BLACK}%d{colorama.Style.RESET_ALL}'
-        preview_history = git_repo.git.log(f'--pretty=format:%s{branch_format_decorated}', '--graph', f'-{num_commits_to_push+3}')
-        preview_history = preview_history.replace('\n', '\n  ')
-        log.info(f'Confirm merge:\n  {preview_history}')
+        preview_history = git_repo.git.log(f'--pretty=format:%s{branch_format_decorated}', '--graph', f'-{num_commits_to_push+3}').split('\n')
+        num_lines_to_highlight = num_commits_to_push + 2
+        new_commit_color_style = f'{colorama.Fore.WHITE}{colorama.Back.YELLOW}'
+        for i in range(num_lines_to_highlight):
+            preview_history[i] = re.sub(r'^\*(.*?)', f'{new_commit_color_style}*{colorama.Style.RESET_ALL}' + r'\1', preview_history[i], 1)
+            preview_history[i] = re.sub(r'^\|(.*?)', f'{new_commit_color_style}|{colorama.Style.RESET_ALL}' + r'\1', preview_history[i], 1)
+        log.info(f'Confirm merge:\n  ' + '\n  '.join(preview_history))
+
+        # Ask for permission to push
         confirm_merge_answer = input(f"Does this look correct? (y/n) ") or "n"
 
         # Push the merge
