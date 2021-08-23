@@ -30,7 +30,7 @@ def list_command(github, github_repo, only_mine=False):
         print('No pull requests found')
 
 
-def merge_command(git_repo, github_repo, pull_number):
+def merge_command(git_repo, github_repo, pull_number, merge_config):
     log.info(f'{colorama.Fore.CYAN}Preparing to merge Pull Request #{pull_number}')
 
     # This undo stack is used when we want to back out of changes
@@ -199,7 +199,12 @@ def merge_command(git_repo, github_repo, pull_number):
         undo_stack.append(undo_pr_merge_action)
 
         log.info(f'{colorama.Fore.CYAN}Merging {pull.head.ref} into {pull.base.ref}')
-        merge_msg = f'Merge: {pull.title} (#{pull.number})'
+        merge_msg = merge_config.merge_msg_format.format(
+            TITLE=pull.title,
+            NUMBER=pull.number,
+            AUTHOR_USERNAME=pull.user.login,
+            AUTHOR_NAME=pull.user.name
+        )
         git_repo.git.merge(pull.head.ref, '--no-ff', '-m', merge_msg)
 
         # Output preview of local base branch with new commits highlighted
@@ -285,17 +290,6 @@ def run():
     colorama.init(autoreset=True)
     logger.setup_logging(logging.DEBUG if args['verbose'] else logging.INFO)
 
-    # Load config
-    config_file_path = os.path.expanduser(f'~/{cfg.RC_FILE_NAME}')
-    config = configparser.ConfigParser()
-    config.read(config_file_path)
-    github_access_token = args['token']
-    if not github_access_token:
-        github_access_token = config.get('auth', 'github_access_token', fallback=None)
-
-    # Auth checkup
-    github_access_token = auth.initial_auth_flow_if_necessary(github_access_token)
-
     # Repo setup
     git_repo = None
     try:
@@ -308,6 +302,23 @@ def run():
     if not any(github_remote_urls):
         log.error('This is not a Github repository')
         exit(1)
+
+    # Load configs
+    git_repo_dir = git_repo.git.rev_parse('--show-toplevel')
+    global_config_file_path = os.path.expanduser(f'~/{cfg.RC_FILE_NAME}')
+    local_config_file_path = os.path.join(git_repo_dir, cfg.RC_FILE_NAME)
+    config_files = [global_config_file_path]
+    if os.path.exists(local_config_file_path):
+        log.debug(f'Reading from local repo config: {local_config_file_path}')
+        config_files.insert(0, local_config_file_path)
+    config = configparser.ConfigParser()
+    config.read(config_files)
+
+    # Auth checkup
+    github_access_token = args['token']
+    if not github_access_token:
+        github_access_token = config.get('auth', 'github_access_token', fallback=None)
+    github_access_token = auth.initial_auth_flow_if_necessary(github_access_token)
 
     # Parse github repo name from remote url:
     # https://github.com/spatialsys/Spatial-2.0.git
@@ -322,7 +333,8 @@ def run():
     if args['cmd'] in ['list', 'ls']:
         list_command(github, github_repo, args['mine'])
     elif args['cmd'] == 'merge':
-        merge_command(git_repo, github_repo, args['number'][0])
+        merge_config = cfg.MergeConfig(config)
+        merge_command(git_repo, github_repo, args['number'][0], merge_config)
 
 
 if __name__ == '__main__':

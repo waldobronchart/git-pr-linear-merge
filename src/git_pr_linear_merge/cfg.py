@@ -15,3 +15,8 @@ def write_default_config(auth_token):
     log.debug(f'Writing default config to {config_file_path}')
     with open(config_file_path, 'w') as configfile:
         config.write(configfile)
+
+
+class MergeConfig:
+    def __init__(self, config):
+        self.merge_msg_format = config.get('merge', 'merge_msg_format', fallback=r'Merge: {TITLE} (#{NUMBER})')
