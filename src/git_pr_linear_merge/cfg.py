@@ -20,3 +20,6 @@ def write_default_config(auth_token):
 class MergeConfig:
     def __init__(self, config):
         self.merge_msg_format = config.get('merge', 'merge_msg_format', fallback=r'Merge: {TITLE} (#{NUMBER})')
+
+        self.squash_msg_format = config.get('squash', 'squash_msg_format', fallback=r'{TITLE} (#{NUMBER})')
+        self.squash_cmd_enabled = config.getboolean('squash', 'squash_cmd_enabled', fallback=True)

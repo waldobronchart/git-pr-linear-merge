@@ -11,6 +11,7 @@ import colorama
 from datetime import datetime
 from github import Github
 from tabulate import tabulate
+from itertools import groupby
 
 from . import logger
 from . import auth
@@ -30,7 +31,7 @@ def list_command(github, github_repo, only_mine=False):
         print('No pull requests found')
 
 
-def merge_command(git_repo, github_repo, pull_number, merge_config):
+def merge_command(merge_with_squash, git_repo, github_repo, pull_number, merge_config):
     log.info(f'{colorama.Fore.CYAN}Preparing to merge Pull Request #{pull_number}')
 
     # This undo stack is used when we want to back out of changes
@@ -198,20 +199,36 @@ def merge_command(git_repo, github_repo, pull_number, merge_config):
         undo_pr_merge_action = UndoAction(undo_pr_merge, failure_is_fatal=True)
         undo_stack.append(undo_pr_merge_action)
 
-        log.info(f'{colorama.Fore.CYAN}Merging {pull.head.ref} into {pull.base.ref}')
-        merge_msg = merge_config.merge_msg_format.format(
+        num_commits_on_branch = len(list(git_repo.iter_commits(f'{pull.base.ref}...{pull.head.ref}@{{u}}')))
+
+        commit_msg_format = merge_config.squash_msg_format if merge_with_squash else merge_config.merge_msg_format
+        merge_msg = commit_msg_format.format(
             TITLE=pull.title,
             NUMBER=pull.number,
             AUTHOR_USERNAME=pull.user.login,
             AUTHOR_NAME=pull.user.name
         )
-        git_repo.git.merge(pull.head.ref, '--no-ff', '-m', merge_msg)
+        if merge_with_squash:
+            # Find author to attribute the commit to (select author with most commits on branch)
+            commit_log = git_repo.git.log(pull.head.sha, '-n', num_commits_on_branch)
+            commit_authors = sorted(list(re.findall(r'Author: (.*?)\n', commit_log)))
+            commit_authors_count = {k:len(list(g)) for k, g in groupby(commit_authors)}
+            main_author = max(commit_authors_count, key=commit_authors_count.get)
+
+            # Do the squash
+            log.info(f'{colorama.Fore.CYAN}Squashing {pull.head.ref} onto {pull.base.ref}')
+            git_repo.git.merge('--squash', pull.head.sha)
+            git_repo.git.commit('--author', main_author, '-m', merge_msg)
+        else:
+            # Regular merge preserving all commits from the original branch
+            log.info(f'{colorama.Fore.CYAN}Merging {pull.head.ref} onto {pull.base.ref}')
+            git_repo.git.merge(pull.head.ref, '--no-ff', '-m', merge_msg)
 
         # Output preview of local base branch with new commits highlighted
         num_commits_to_push = len(list(git_repo.iter_commits(f'{pull.base.ref}...{pull.base.ref}@{{u}}')))
         branch_format_decorated = f'{colorama.Fore.CYAN}{colorama.Back.BLACK}%d{colorama.Style.RESET_ALL}'
         preview_history = git_repo.git.log(f'--pretty=format:%s{branch_format_decorated}', '--graph', f'-{num_commits_to_push+3}').split('\n')
-        num_lines_to_highlight = num_commits_to_push + 2
+        num_lines_to_highlight = num_commits_to_push + (0 if merge_with_squash else 2)
         new_commit_color_style = f'{colorama.Fore.WHITE}{colorama.Back.YELLOW}'
         for i in range(num_lines_to_highlight):
             preview_history[i] = re.sub(r'^\*(.*?)', f'{new_commit_color_style}*{colorama.Style.RESET_ALL}' + r'\1', preview_history[i], 1)
@@ -284,6 +301,8 @@ def run():
     list_command_parser.add_argument('-m', '--mine', action='store_true', help='List only pull requests opened by me')
     merge_command_parser = subparsers.add_parser('merge')
     merge_command_parser.add_argument('number', type=int, nargs=1, help='pull request number')
+    squash_command_parser = subparsers.add_parser('squash')
+    squash_command_parser.add_argument('number', type=int, nargs=1, help='pull request number')
     args = vars(parser.parse_args())
 
     # Logging setup
@@ -332,9 +351,15 @@ def run():
     # Run the command
     if args['cmd'] in ['list', 'ls']:
         list_command(github, github_repo, args['mine'])
-    elif args['cmd'] == 'merge':
+    elif args['cmd'] in ['merge', 'squash']:
         merge_config = cfg.MergeConfig(config)
-        merge_command(git_repo, github_repo, args['number'][0], merge_config)
+
+        merge_with_squash = (args['cmd'] == 'squash')
+        if merge_with_squash and not merge_config.squash_cmd_enabled:
+            log.error('Squash merge is not enabled in local configuration (squash_cmd_enabled = False)')
+            exit(1)
+
+        merge_command(merge_with_squash, git_repo, github_repo, args['number'][0], merge_config)
 
 
 if __name__ == '__main__':
