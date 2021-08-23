@@ -32,6 +32,8 @@ Get help: `git pr -h`
 
 The first time you run this script, you will be asked to authenticate with Github.
 
+### List Command
+
 List all open pull requests: `git pr list`, or list only yours with `git pr list --mine`
 ```
    #  Title                                                         Branch
@@ -40,6 +42,8 @@ List all open pull requests: `git pr list`, or list only yours with `git pr list
 5812  Fix highlight being stuck when gallery frame is deactivated   fix/kevin-highlightable-view
 ...
 ```
+
+### Merge Command
 
 Merge a pull request: `git pr merge NUMBER`
 ```
@@ -73,6 +77,17 @@ Does this look correct? (y/n) y
 | Re-applying stashed changes
 ```
 
+## Repo configuration
+
+Add a `.linmergerc` config file to the repo root directory to customize behaviour to your teams preference.
+
+Below are all the options
+```ini
+[merge]
+# Commit message format vars: TITLE, NUMBER, AUTHOR_NAME, AUTHOR_USERNAME
+merge_msg_format = Merge: {TITLE} (#{NUMBER})
+```
+
 # Development
 
 This section explains how to setup the dev environment and update the package
@@ -86,11 +101,11 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### Running Locally
+## Running Locally
 
 With the environment setup through the previous step, you can run `git pr` using your local code by running the `git-pr.py` script in the root directory of this repo.
 ```
-python3 git-pr.py
+python3 ~/path/to/your/local/checkout/git-pr.py
 ```
 
 ## Updating the package
