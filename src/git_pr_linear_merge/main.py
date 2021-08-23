@@ -200,6 +200,8 @@ def merge_command(merge_with_squash, git_repo, github_repo, pull_number, merge_c
         undo_stack.append(undo_pr_merge_action)
 
         num_commits_on_branch = len(list(git_repo.iter_commits(f'{pull.base.ref}...{pull.head.ref}@{{u}}')))
+        if num_commits_on_branch == 1 and merge_config.always_squash_single_commit_pulls:
+            merge_with_squash = True
 
         commit_msg_format = merge_config.squash_msg_format if merge_with_squash else merge_config.merge_msg_format
         merge_msg = commit_msg_format.format(

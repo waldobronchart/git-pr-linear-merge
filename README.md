@@ -69,6 +69,8 @@ Below are all the options
 [merge]
 # Commit message format vars: TITLE, NUMBER, AUTHOR_NAME, AUTHOR_USERNAME
 merge_msg_format = Merge: {TITLE} (#{NUMBER})
+# Enable single-commit pulls to be squashed instead of merging, even when explicitly using the merge command
+always_squash_single_commit_pulls = True
 
 [squash]
 squash_msg_format = {TITLE} (#{NUMBER})
