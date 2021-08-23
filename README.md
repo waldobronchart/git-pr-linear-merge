@@ -46,7 +46,19 @@ List all open pull requests: `git pr list`, or list only yours with `git pr list
 ### Merge Command
 
 Merge a pull request: `git pr merge NUMBER`
+
 ![image](https://user-images.githubusercontent.com/464795/130376573-d7d6ea25-3b34-4b15-84df-1ca30cd94f89.png)
+
+### Squash Command
+
+Squash a pull request: `git pr squash NUMBER`
+
+The squash command collapses all commits from the pull branch into a single commit and puts that commit straight onto the base branch without doing an explicit merge.
+
+Here's what the history looks like when you use `squash` vs `merge`.
+
+![image](https://user-images.githubusercontent.com/464795/130379156-1b6f19fd-075b-4899-92e9-29df49b0fb73.png)
+
 
 ## Repo configuration
 
@@ -57,6 +69,13 @@ Below are all the options
 [merge]
 # Commit message format vars: TITLE, NUMBER, AUTHOR_NAME, AUTHOR_USERNAME
 merge_msg_format = Merge: {TITLE} (#{NUMBER})
+# Enable single-commit pulls to be squashed instead of merging, even when explicitly using the merge command
+always_squash_single_commit_pulls = True
+
+[squash]
+squash_msg_format = {TITLE} (#{NUMBER})
+# Enable usage of the `git pr squash` command
+squash_cmd_enabled = True
 ```
 
 # Development
