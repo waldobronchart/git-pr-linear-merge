@@ -242,38 +242,59 @@ def merge_command(merge_with_squash, git_repo, github_repo, pull_number, merge_c
 
         # Push the merge
         if confirm_merge_answer.lower() == 'y':
-            # Check that the base branch has not been updated since
-            git_repo.remotes.origin.fetch()
-            base_commits_diff = git_repo.git.rev_list('--left-right', '--count', f'{pull.base.ref}...{pull.base.ref}@{{u}}')
-            _, num_behind = base_commits_diff.split('\t')
+            merge_succeeded = False
 
-            # Can we continue?
-            if int(num_behind) > 0:
-                log.error(f'The base branch `{pull.base.ref}` has been updated since we started. Try running this script again')
+            # For squashes, use github api to merge because otherwise the PR will be marked as closed instead of merged
+            if merge_with_squash:
+                log.info(f'{colorama.Fore.CYAN}Squashing...')
+                pull.merge('', merge_msg, merge_method='squash')
+                merge_succeeded = True
+
+                # Now our local base branch is out of date, we need to fetch and reset to the origin branch
+                git_repo.remotes.origin.fetch()
+                git_repo.git.reset('--hard', f'{pull.base.ref}@{{u}}')
+
+            # regular merge
             else:
-                # Push
-                log.info(f'{colorama.Fore.CYAN}Pushing {pull.base.ref}')
-                git_repo.git.push('origin', '--no-verify', pull.base.ref)
-                log.info(f'{colorama.Fore.GREEN}Successfully merged Pull Request #{pull.number}')
+                log.info(f'{colorama.Fore.CYAN}Pushing merge...')
 
-                # Pop some elements
-                undo_stack.remove(undo_rebase_action)
-                undo_stack.remove(undo_pr_merge_action)
+                # Check that the base branch has not been updated since
+                git_repo.remotes.origin.fetch()
+                base_commits_diff = git_repo.git.rev_list('--left-right', '--count', f'{pull.base.ref}...{pull.base.ref}@{{u}}')
+                _, num_behind = base_commits_diff.split('\t')
 
+                # Can we continue?
+                if int(num_behind) > 0:
+                    log.error(f'The base branch `{pull.base.ref}` has been updated since we started. Try running this script again')
+                else:
+                    # Push
+                    log.info(f'{colorama.Fore.CYAN}Pushing {pull.base.ref}')
+                    git_repo.git.push('origin', '--no-verify', pull.base.ref)
+                    log.info(f'{colorama.Fore.GREEN}Successfully merged Pull Request #{pull.number}')
+                    merge_succeeded = True
+
+            # Cleaup after merge
+            if merge_succeeded:
                 # Delete the remote pr branch
                 log.info(f'Deleting the pull request branch {pull.head.ref}')
                 try: # trycatch here because GitPython seems to throw an error here, even if it succeeds
                     git_repo.git.push('origin', '--delete', '--no-verify', pull.head.ref)
                 except:
                     pass
+                git_repo.remotes.origin.fetch()
 
-                # Merge was successful, if the original branch was the same as the pr branch, stay on the base branch
+                # Pop some elements
+                undo_stack.remove(undo_rebase_action)
+                undo_stack.remove(undo_pr_merge_action)
+
+                # If user was on the pr branch before running the script, stay on the base branch which we are currently on
                 if orig_branch.name == pull.head.ref:
                     # No longer need to go back to original branch
                     undo_stack.remove(checkout_original_branch)
 
                 # Delete local pr branch
                 git_repo.git.branch('-D', pull.head.ref)
+
 
     except git.CommandError as command_error:
         command = command_error._cmdline
