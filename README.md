@@ -78,6 +78,13 @@ squash_msg_format = {TITLE} (#{NUMBER})
 squash_cmd_enabled = True
 ```
 
+## Troubleshooting
+
+- You see "git: pr is not a git command"
+  1. Run `sudo pip3 install git-pr-linear-merge` and see if you receive a yellow warning message indicating `..../Library/Caches/pip` is not writable by the current user. This indicates the installation has not completed successfully due to incorrect write permissions
+  1. Run `sudo -H pip3 install git-pr-linear-merge`
+  1. If the error still persists, make sure you have write access to `~/Library/Python/3.X/bin`. Run `sudo -H pip3 install git-pr-linear-merge` again if you changed any write permissions
+
 # Development
 
 This section explains how to setup the dev environment and update the package
