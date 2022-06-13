@@ -123,7 +123,7 @@ twine upload --repository testpypi dist/*
 
 Installing:
 ```
-python3 -m pip install --index-url https://test.pypi.org/simple/ git-pr-linear-merge
+python3 -m pip install --upgrade --index-url https://test.pypi.org/simple/ git-pr-linear-merge
 ```
 
 ### Publish
