@@ -117,11 +117,12 @@ def merge_command(merge_with_squash, git_repo, github_repo, pull_number, merge_c
     #  6. Checkout pull request base branch
     #  7. Merge pull request branch into base
     #  8. Ask user for confirmation
-    #  9. Push base branch
-    # 10. Delete pull request branch (local and remote)
-    # 11. Delete backup branch
-    # 12. Checkout the branch the user was originally on (if user wasn't on the pr branch)
-    # 13. Re-apply local stash if necessary
+    #  9. Change base branch of any PRs that have this PR as base
+    # 10. Push base branch
+    # 11. Delete pull request branch (local and remote)
+    # 12. Delete backup branch
+    # 13. Checkout the branch the user was originally on (if user wasn't on the pr branch)
+    # 14. Re-apply local stash if necessary
     try:
         # Stash local changes if needed
         if git_repo.is_dirty(untracked_files=True):
@@ -243,6 +244,17 @@ def merge_command(merge_with_squash, git_repo, github_repo, pull_number, merge_c
         # Push the merge
         if confirm_merge_answer.lower() == 'y':
             merge_succeeded = False
+
+            # If there are any pull requests that have the current PR's branch as their base, we should change their
+            # base to the current PR's base, or else GitHub may close those PRs instead.
+            log.info(f'Retargeting any pull requests with base branch {pull.head.ref}...')
+            upstream_pulls = github_repo.get_pulls(base=pull.head.ref)
+            if upstream_pulls.totalCount > 0:
+                for upstream_pull in upstream_pulls:
+                    log.info(f'  Updating: {upstream_pull.title} (#{upstream_pull.number})')
+                    upstream_pull.edit(base=pull.base.ref)
+            else:
+                log.info(f'  Done! No pull requests found')
 
             # For squashes, use github api to merge because otherwise the PR will be marked as closed instead of merged
             if merge_with_squash:
