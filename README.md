@@ -91,18 +91,15 @@ This section explains how to setup the dev environment and update the package
 
 ## Environment setup
 
-```
-python3 -m pip install virtualenv
-python3 virtualenv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
+To install all the python packages that this package needs, run this once: `pipenv install`
+
+Then, to activate the environment in your terminal, run: `pipenv shell`
 
 ## Running Locally
 
 With the environment setup through the previous step, you can run `git pr` using your local code by running the `git-pr.py` script in the root directory of this repo.
 ```
-python3 ~/path/to/your/local/checkout/git-pr.py
+python ~/path/to/your/local/checkout/git-pr.py
 ```
 
 ## Updating the package
@@ -115,7 +112,9 @@ Before publishing for real, you can test a package by publishing it to TestPyPi
 
 Publishing:
 ```
-source venv/bin/activate
+pipenv sync
+pipenv install --dev
+pipenv shell
 rm -rf dist
 rm -rf build
 python -m build
@@ -130,7 +129,7 @@ python3 -m pip install --index-url https://test.pypi.org/simple/ git-pr-linear-m
 ### Publish
 
 ```
-source venv/bin/activate
+pipenv shell
 rm -rf dist
 rm -rf build
 python -m build

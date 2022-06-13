@@ -1,0 +1,17 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+gitpython = "==3.1.14"
+pygithub = "==1.54.1"
+tabulate = "==0.8.9"
+requests = "==2.25.1"
+colorama = "==0.4.4"
+
+[dev-packages]
+build = "==0.3.1"
+
+[requires]
+python_version = "3.9"
