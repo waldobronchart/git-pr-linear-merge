@@ -7,7 +7,7 @@ name = "pypi"
 gitpython = "==3.1.14"
 pygithub = "==1.54.1"
 tabulate = "==0.8.9"
-requests = "==2.25.1"
+requests = "==2.31.0"
 colorama = "==0.4.4"
 
 [dev-packages]
